@@ -61,6 +61,7 @@ func (p *Project) Delete() error {
 	return nil
 }
 
+// DeleteProject deletes the projects with the given projectID
 func DeleteProject(projectID string) error {
 	_, err := r().Delete(projectsRoute() + "/" + projectID)
 	return err
