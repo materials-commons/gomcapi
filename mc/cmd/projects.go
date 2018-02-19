@@ -16,22 +16,40 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/materials-commons/gomcapi"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
 // projectsCmd represents the projects command
 var projectsCmd = &cobra.Command{
-	Use:   "projects",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:     "projects",
+	Short:   "Lists all projects a user has access to.",
+	Long:    ``,
+	Aliases: []string{"proj", "p"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("projects called")
+		projects, err := mcapi.GetAllProjects()
+		if err != nil {
+			fmt.Println("Unable to retrieve projects:", err)
+			os.Exit(1)
+		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Name", "Description", "Owner", "Id", "MTime"})
+		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+		table.SetCenterSeparator("|")
+
+		for _, proj := range projects {
+			t := time.Time(proj.MTime)
+			dt := t.Format(time.RFC1123)
+			table.Append([]string{proj.Name, proj.Description, proj.Owner, proj.ID, dt})
+		}
+
+		table.Render()
+
 	},
 }
 
