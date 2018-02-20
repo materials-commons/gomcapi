@@ -26,8 +26,7 @@ func FindRoot() (string, error) {
 }
 
 type Config struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID string `json:"id"`
 }
 
 func FindConfig() (*Config, error) {
