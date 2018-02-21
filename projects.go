@@ -7,15 +7,6 @@ import (
 	"gopkg.in/resty.v1"
 )
 
-type Project struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Owner       string    `json:"owner"`
-	Description string    `json:"description"`
-	Birthtime   Timestamp `json:"birthtime"`
-	MTime       Timestamp `json:"mtime"`
-}
-
 // projectsRoute creates the default route path for projects REST API
 func projectsRoute() string {
 	p := config.GetString("mcurl") + "/v2" + "/projects"
