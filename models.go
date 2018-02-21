@@ -1,5 +1,6 @@
 package mcapi
 
+// A Project is a container for holding experiments and files and setting up access controls
 type Project struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
@@ -15,6 +16,7 @@ type Project struct {
 	Users       []*ProjectUser `json:"users"`
 }
 
+// A ProjectNote is a note for a project
 type ProjectNote struct {
 	ID        string    `json:"id"`
 	Title     string    `json:"title"`
@@ -24,16 +26,20 @@ type ProjectNote struct {
 	Owner     string    `json:"owner"`
 }
 
+// ProjectTodo is a simple representation of a to-do. When a ProjectTodo is completed it is simply
+// deleted from the server.
 type ProjectTodo struct {
 	Title string `json:"title"`
 }
 
+// ProjectUser is a user that has access to the project
 type ProjectUser struct {
 	UserID    string    `json:"user_id"`
 	Fullname  string    `json:"fullname"`
 	Birthtime Timestamp `json:"-"` // `json:"birthtime"`
 }
 
+// Experiment is where the user does their work collecting data, creating the workflow, etc...
 type Experiment struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
