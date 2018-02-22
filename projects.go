@@ -52,15 +52,6 @@ func (p *Project) Delete() error {
 	return nil
 }
 
-/*
-this.name = name;
-        this.goal = '';
-        this.description = '';
-        this.aim = '';
-        this.status = 'active';
-        this.tasks = [];
-*/
-
 func (p *Project) CreateExperiment(name, description string) (*Experiment, error) {
 	var experiment Experiment
 	route := projectsRoute() + "/" + p.ID + "/experiments"
