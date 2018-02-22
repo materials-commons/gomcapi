@@ -52,6 +52,29 @@ func (p *Project) Delete() error {
 	return nil
 }
 
+/*
+this.name = name;
+        this.goal = '';
+        this.description = '';
+        this.aim = '';
+        this.status = 'active';
+        this.tasks = [];
+*/
+
+func (p *Project) CreateExperiment(name, description string) (*Experiment, error) {
+	var experiment Experiment
+	route := projectsRoute() + "/" + p.ID + "/experiments"
+	_, err := r().SetResult(&experiment).SetBody(map[string]interface{}{
+		"name":        name,
+		"description": description,
+		"aim":         "",
+		"status":      "active",
+		"tasks":       []string{},
+	}).
+		Post(route)
+	return &experiment, err
+}
+
 // DeleteProject deletes the projects with the given projectID
 func DeleteProject(projectID string) error {
 	_, err := r().Delete(projectsRoute() + "/" + projectID)
