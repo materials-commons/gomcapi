@@ -66,6 +66,10 @@ func (p *Project) CreateExperiment(name, description string) (*Experiment, error
 	return &experiment, err
 }
 
+func (e *Experiment) DeleteExperiment() error {
+	return nil
+}
+
 // DeleteProject deletes the projects with the given projectID
 func DeleteProject(projectID string) error {
 	_, err := r().Delete(projectsRoute() + "/" + projectID)
