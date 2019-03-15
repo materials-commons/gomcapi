@@ -1,50 +1,37 @@
 package mcapi_test
 
 import (
-	"fmt"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/materials-commons/gomcapi/pkg/tutils/assert"
 
 	. "github.com/materials-commons/gomcapi"
 )
 
-var _ = Describe("Project", func() {
-	var createdProjectID string
+func TestGetAllProjects(t *testing.T) {
+	projects, err := GetAllProjects()
+	assert.Ok(t, err)
+	assert.NotNil(t, projects)
+}
 
-	Describe("GetAllProjects", func() {
-		It("Should get all projects for user", func() {
-			projects, err := GetAllProjects()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(projects).ShouldNot(BeNil())
-		})
-	})
+func TestCreateProjectAndExperiments(t *testing.T) {
+	var (
+		proj *Project
+		err  error
+		e    *Experiment
+	)
+	projName := "Proj1"
+	projDescription := "Project Created With Test"
+	proj, err = CreateProject(projName, projDescription)
+	assert.Ok(t, err)
+	assert.NotNil(t, proj)
+	assert.Equals(t, projName, proj.Name)
+	assert.Equals(t, projDescription, proj.Description)
 
-	Describe("CreateProject", func() {
-		var createdProject *Project
-		It("Should create a project", func() {
-			projName := "Proj1"
-			projDescription := "Project Created With Test"
-			proj, err := CreateProject(projName, projDescription)
-			createdProject = proj
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(proj).ShouldNot(BeNil())
-			Expect(proj.Name).Should(Equal(projName))
-			Expect(proj.Description).Should(Equal(projDescription))
+	e, err = proj.CreateExperiment("t1", "t1 description")
+	assert.Ok(t, err)
+	assert.NotNil(t, e)
 
-			createdProjectID = proj.ID
-		})
-
-		It("Should create an experiment on the project", func() {
-			exp, err := createdProject.CreateExperiment("t1", "t1 description")
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(exp).ShouldNot(BeNil())
-			fmt.Printf("%#v\n", exp)
-		})
-
-		It("Should delete the created project", func() {
-			err := DeleteProject(createdProjectID)
-			Expect(err).Should(BeNil())
-		})
-	})
-})
+	err = DeleteProject(proj.ID)
+	assert.Ok(t, err)
+}
