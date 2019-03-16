@@ -23,7 +23,7 @@ func TestURLPaths(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		site, err := urlpath.Join(test.site, test.paths...)
+		site, err := urlpath.JoinE(test.site, test.paths...)
 		assert.Ok(t, err)
 		assert.Equals(t, site, test.expected)
 	}

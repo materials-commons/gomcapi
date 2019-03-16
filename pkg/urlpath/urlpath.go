@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-func Join(weburl string, paths ...string) (string, error) {
+func JoinE(weburl string, paths ...string) (string, error) {
 	u, err := url.Parse(weburl)
 	if err != nil {
 		return "", errors.New("invalid url")
@@ -15,4 +15,9 @@ func Join(weburl string, paths ...string) (string, error) {
 	allPaths := append([]string{u.Path}, paths...)
 	u.Path = path.Join(allPaths...)
 	return fmt.Sprintf("%s", u), nil
+}
+
+func Join(weburl string, paths ...string) string {
+	p, _ := JoinE(weburl, paths...)
+	return p
 }
