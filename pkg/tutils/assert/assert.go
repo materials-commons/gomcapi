@@ -87,6 +87,13 @@ func NE(tb testing.TB, expected, actual interface{}) {
 	}
 }
 
+func NEf(tb testing.TB, expected, actual interface{}, msg string, v ...interface{}) {
+	if reflect.DeepEqual(expected, actual) {
+		_, file, line, _ := runtime.Caller(1)
+		tb.Fatalf("\033[31m%s:%d:"+msg+"\033[39m\n\n", append([]interface{}{filepath.Base(file), line}, v...)...)
+	}
+}
+
 // Nil fails the test if value is not nil.
 func Nil(tb testing.TB, value interface{}) {
 	if !isNil(value) {
@@ -95,11 +102,26 @@ func Nil(tb testing.TB, value interface{}) {
 	}
 }
 
+func Nilf(tb testing.TB, value interface{}, msg string, v ...interface{}) {
+	if !isNil(value) {
+		_, file, line, _ := runtime.Caller(1)
+		tb.Fatalf("\033[31m%s:%d:"+msg+"\033[39m\n\n", append([]interface{}{filepath.Base(file), line}, v...)...)
+	}
+}
+
 // NotNil fails the test if value is nil.
 func NotNil(tb testing.TB, value interface{}) {
 	if isNil(value) {
 		_, file, line, _ := runtime.Caller(1)
 		tb.Fatalf("\033[31m%s:%d:\n\n\texpected value, got nil\033[39m\n\n", filepath.Base(file), line)
+	}
+}
+
+// NotNilf fails the test if value is nil
+func NotNilf(tb testing.TB, value interface{}, msg string, v ...interface{}) {
+	if isNil(value) {
+		_, file, line, _ := runtime.Caller(1)
+		tb.Fatalf("\033[31m%s:%d:"+msg+"\033[39m\n\n", append([]interface{}{filepath.Base(file), line}, v...)...)
 	}
 }
 
