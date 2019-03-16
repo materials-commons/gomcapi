@@ -9,7 +9,7 @@ import (
 	"gopkg.in/resty.v1"
 )
 
-type Conn struct {
+type Client struct {
 	APIKey  string
 	BaseURL string
 }
@@ -18,27 +18,27 @@ var ErrBadConfig = errors.New("bad configuration")
 
 var tlsConfig = tls.Config{InsecureSkipVerify: true}
 
-func NewConnection(BaseURL, APIKey string) *Conn {
-	return &Conn{
+func NewConnection(BaseURL, APIKey string) *Client {
+	return &Client{
 		APIKey:  APIKey,
 		BaseURL: urlpath.Join(BaseURL, "v3"),
 	}
 }
 
-func ConnectionFromDefaultConfig() (*Conn, error) {
+func ConnectionFromDefaultConfig() (*Client, error) {
 	apikey := config.GetString("apikey")
 	baseURL := config.GetString("mcurl")
 	if apikey == "" || baseURL == "" {
 		return nil, ErrBadConfig
 	}
-	return &Conn{APIKey: apikey, BaseURL: urlpath.Join(baseURL, "v3")}, nil
+	return &Client{APIKey: apikey, BaseURL: urlpath.Join(baseURL, "v3")}, nil
 }
 
-func (c *Conn) r() *resty.Request {
+func (c *Client) r() *resty.Request {
 	return resty.SetTLSClientConfig(&tlsConfig).R()
 }
 
-func Login(userID, password, url string) (*Conn, error) {
+func Login(userID, password, url string) (*Client, error) {
 	c := NewConnection(url, "")
 	body := map[string]interface{}{
 		"user_id":  userID,
@@ -55,7 +55,7 @@ func Login(userID, password, url string) (*Conn, error) {
 	return c, nil
 }
 
-func LoginUsingDefaultConfig(userID, password string) (*Conn, error) {
+func LoginUsingDefaultConfig(userID, password string) (*Client, error) {
 	baseURL := config.GetString("mcurl")
 	if baseURL == "" {
 		return nil, ErrBadConfig
