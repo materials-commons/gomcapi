@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"errors"
 
-	"github.com/materials-commons/config"
 	"github.com/materials-commons/gomcapi/pkg/urlpath"
 	"gopkg.in/resty.v1"
 )
@@ -23,15 +22,6 @@ func NewConnection(BaseURL, APIKey string) *Client {
 		APIKey:  APIKey,
 		BaseURL: urlpath.Join(BaseURL, "v3"),
 	}
-}
-
-func ConnectionFromDefaultConfig() (*Client, error) {
-	apikey := config.GetString("apikey")
-	baseURL := config.GetString("mcurl")
-	if apikey == "" || baseURL == "" {
-		return nil, ErrBadConfig
-	}
-	return &Client{APIKey: apikey, BaseURL: urlpath.Join(baseURL, "v3")}, nil
 }
 
 func (c *Client) r() *resty.Request {
@@ -53,13 +43,4 @@ func Login(userID, password, url string) (*Client, error) {
 	}
 	c.APIKey = resp.APIKey
 	return c, nil
-}
-
-func LoginUsingDefaultConfig(userID, password string) (*Client, error) {
-	baseURL := config.GetString("mcurl")
-	if baseURL == "" {
-		return nil, ErrBadConfig
-	}
-
-	return Login(userID, password, baseURL)
 }
