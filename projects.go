@@ -1,8 +1,6 @@
 package mcapi
 
 import (
-	"crypto/tls"
-
 	"github.com/materials-commons/config"
 	"gopkg.in/resty.v1"
 )
@@ -12,8 +10,6 @@ func projectsRoute() string {
 	p := config.GetString("mcurl") + "/v2" + "/projects"
 	return p
 }
-
-var tlsConfig = tls.Config{InsecureSkipVerify: true}
 
 // r is similar to resty.R() except that it sets the TLS configuration and the apikey
 func r() *resty.Request {
