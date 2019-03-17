@@ -16,16 +16,14 @@ type Client struct {
 	BaseURL string
 }
 
-var ErrBadConfig = errors.New("bad configuration")
 var ErrAuth = errors.New("authentication")
 var ErrMCAPI = errors.New("mcapi")
 
 var tlsConfig = tls.Config{InsecureSkipVerify: true}
 
-func NewConnection(BaseURL, APIKey string) *Client {
+func NewClient(baseURL string) *Client {
 	return &Client{
-		APIKey:  APIKey,
-		BaseURL: urlpath.Join(BaseURL, "v3"),
+		BaseURL: urlpath.Join(baseURL, "v3"),
 	}
 }
 

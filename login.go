@@ -2,8 +2,7 @@ package mcapi
 
 import "github.com/materials-commons/gomcapi/pkg/urlpath"
 
-func Login(userID, password, url string) (*Client, error) {
-	c := NewConnection(url, "")
+func (c *Client) Login(userID, password string) error {
 	body := map[string]interface{}{
 		"user_id":  userID,
 		"password": password,
@@ -15,12 +14,12 @@ func Login(userID, password, url string) (*Client, error) {
 		} `json:"data"`
 	}
 
-	resp, err := r().SetResult(&res).SetBody(body).Post(urlpath.Join(url, "v3", "login"))
+	resp, err := r().SetResult(&res).SetBody(body).Post(urlpath.Join(c.BaseURL, "login"))
 
 	if err := c.getAPIError(resp, err); err != nil {
-		return nil, err
+		return err
 	}
 
 	c.APIKey = res.Data.APIKey
-	return c, nil
+	return nil
 }
