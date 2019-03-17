@@ -2,7 +2,10 @@ package mcapi
 
 import (
 	"crypto/tls"
-	"errors"
+	"encoding/json"
+	"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/materials-commons/gomcapi/pkg/urlpath"
 	"gopkg.in/resty.v1"
@@ -14,6 +17,8 @@ type Client struct {
 }
 
 var ErrBadConfig = errors.New("bad configuration")
+var ErrAuth = errors.New("authentication")
+var ErrMCAPI = errors.New("mcapi")
 
 var tlsConfig = tls.Config{InsecureSkipVerify: true}
 
@@ -28,19 +33,32 @@ func (c *Client) r() *resty.Request {
 	return resty.SetTLSClientConfig(&tlsConfig).R()
 }
 
-func Login(userID, password, url string) (*Client, error) {
-	c := NewConnection(url, "")
-	body := map[string]interface{}{
-		"user_id":  userID,
-		"password": password,
+func (c *Client) getAPIError(resp *resty.Response, err error) error {
+	switch {
+	case err != nil:
+		return err
+	case resp.RawResponse.StatusCode == 401:
+		return ErrAuth
+	case resp.RawResponse.StatusCode > 299:
+		return c.toErrorFromResponse(resp)
+	default:
+		return nil
 	}
-	var resp struct {
-		APIKey string `json:"apikey"`
+}
+
+type ErrorResponse struct {
+	Data ErrorMsg `json:"data"`
+}
+
+type ErrorMsg struct {
+	Error string `json:"error"`
+}
+
+func (c *Client) toErrorFromResponse(resp *resty.Response) error {
+	var er ErrorResponse
+	if err := json.Unmarshal(resp.Body(), &er); err != nil {
+		return errors.WithMessage(ErrMCAPI, fmt.Sprintf("(HTTP Status: %d)- unable to parse json error response: %s", resp.RawResponse.StatusCode, err))
 	}
-	_, err := r().SetResult(&resp).SetBody(body).Post(urlpath.Join(url, "v3", "login"))
-	if err != nil {
-		return nil, err
-	}
-	c.APIKey = resp.APIKey
-	return c, nil
+
+	return errors.WithMessage(ErrMCAPI, fmt.Sprintf("(HTTP Status: %d)- %s", resp.RawResponse.StatusCode, er.Data.Error))
 }
