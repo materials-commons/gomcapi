@@ -93,13 +93,13 @@ type Setup struct {
 }
 
 type SetupProperty struct {
-	ID          string                 `json:"id"`
-	Attribute   string                 `json:"attribute"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	OType       string                 `json:"otype"`
-	Unit        string                 `json:"unit"`
-	Value       map[string]interface{} `json:"value"`
+	ID          string      `json:"id"`
+	Attribute   string      `json:"attribute"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	OType       string      `json:"otype"`
+	Unit        string      `json:"unit"`
+	Value       interface{} `json:"value"`
 }
 
 type Dataset struct {

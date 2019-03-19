@@ -1,37 +1,36 @@
-package mcapi_test
+package mcapi
 
 import (
 	"testing"
 
 	"github.com/materials-commons/gomcapi/pkg/tutils/assert"
 
-	. "github.com/materials-commons/gomcapi"
+	uuid "github.com/hashicorp/go-uuid"
 )
 
-func TestGetAllProjects(t *testing.T) {
-	projects, err := GetAllProjects()
-	assert.Ok(t, err)
-	assert.NotNil(t, projects)
+const testURL = "http://mcdev.localhost/api"
+
+func newTestClient() *Client {
+	c := NewClient(testURL)
+	c.APIKey = "totally-bogus"
+	return c
 }
 
-func TestCreateProjectAndExperiments(t *testing.T) {
-	var (
-		proj *Project
-		err  error
-		e    *Experiment
-	)
-	projName := "Proj1"
-	projDescription := "Project Created With Test"
-	proj, err = CreateProject(projName, projDescription)
-	assert.Ok(t, err)
-	assert.NotNil(t, proj)
-	assert.Equals(t, projName, proj.Name)
-	assert.Equals(t, projDescription, proj.Description)
+func uniqueName(t *testing.T) string {
+	id, err := uuid.GenerateUUID()
+	if err != nil {
+		t.Fatalf("Failed creating uuid %s", err)
+	}
 
-	e, err = proj.CreateExperiment("t1", "t1 description")
-	assert.Ok(t, err)
-	assert.NotNil(t, e)
+	return id
+}
 
-	err = DeleteProject(proj.ID)
+func TestCreateProject(t *testing.T) {
+	c := newTestClient()
+	p, err := c.CreateProject(uniqueName(t), "projdesc")
+	assert.Ok(t, err)
+	assert.NotNil(t, p)
+
+	err = c.DeleteProject(p.ID)
 	assert.Ok(t, err)
 }

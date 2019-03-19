@@ -53,16 +53,12 @@ func (c *Client) getAPIError(resp *resty.Response, err error) error {
 	}
 }
 
-type ErrorResponse struct {
-	Data ErrorMsg `json:"data"`
-}
-
-type ErrorMsg struct {
-	Error string `json:"error"`
-}
-
 func (c *Client) toErrorFromResponse(resp *resty.Response) error {
-	var er ErrorResponse
+	var er struct {
+		Data struct {
+			Error string `json:"error"`
+		} `json:"data"`
+	}
 	if err := json.Unmarshal(resp.Body(), &er); err != nil {
 		return errors.WithMessage(ErrMCAPI, fmt.Sprintf("(HTTP Status: %d)- unable to parse json error response: %s", resp.RawResponse.StatusCode, err))
 	}
