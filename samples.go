@@ -27,3 +27,17 @@ func (c *Client) AddSampleToProcess() (*Sample, error) {
 
 	return &result.Data, nil
 }
+
+func (c *Client) AddMeasurementsToSampleInProcess() (*Sample, error) {
+	var result struct {
+		Data Sample `json:"data"`
+	}
+
+	body := struct{}{}
+
+	if err := c.post(&result, body, "addMeasurementsToSampleInProcess"); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
