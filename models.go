@@ -105,7 +105,17 @@ type SetupProperty struct {
 type Dataset struct {
 }
 
+type Property struct {
+	ID           string        `json:"id,omitempty"`
+	Name         string        `json:"name"`
+	Description  string        `json:"name"`
+	Measurements []Measurement `json:"measurements"`
+}
+
 type Measurement struct {
+	OType string      `json:"otype"`
+	Unit  string      `json:"unit"`
+	Value interface{} `json:"value"`
 }
 
 type File struct {
