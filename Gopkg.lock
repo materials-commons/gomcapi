@@ -20,6 +20,12 @@
   version = "v1.4.7"
 
 [[projects]]
+  name = "github.com/hashicorp/go-uuid"
+  packages = ["."]
+  revision = "4f571afc59f3043a65f8fe6bf46d887b10a01d43"
+  version = "v1.0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
   packages = [
@@ -87,6 +93,12 @@
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -184,6 +196,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6904ac569e7b22a3b5e898326ad8937fc3cacf174f7b02d03dbd51264e54bad2"
+  inputs-digest = "d0d0adf20cf69501c2bca528f3bb3ad16c5d2d5b2db880db2b328072a933e8aa"
   solver-name = "gps-cdcl"
   solver-version = 1
