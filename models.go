@@ -108,7 +108,7 @@ type Dataset struct {
 type Property struct {
 	ID           string        `json:"id,omitempty"`
 	Name         string        `json:"name"`
-	Description  string        `json:"name"`
+	Description  string        `json:"description"`
 	Measurements []Measurement `json:"measurements"`
 }
 
