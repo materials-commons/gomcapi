@@ -5,6 +5,10 @@ func (c *Client) CreateProcess(projectID, experimentID, name string, setups []Se
 		Data Process `json:"data"`
 	}
 
+	if setups == nil {
+		setups = make([]Setup, 0)
+	}
+
 	body := struct {
 		ProjectID    string  `json:"project_id"`
 		ExperimentID string  `json:"experiment_id"`
