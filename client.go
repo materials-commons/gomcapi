@@ -17,7 +17,6 @@ type Client struct {
 }
 
 var ErrAuth = errors.New("authentication")
-var ErrMCAPI = errors.New("mcapi")
 
 var tlsConfig = tls.Config{InsecureSkipVerify: true}
 
@@ -55,13 +54,12 @@ func (c *Client) getAPIError(resp *resty.Response, err error) error {
 
 func (c *Client) toErrorFromResponse(resp *resty.Response) error {
 	var er struct {
-		Data struct {
-			Error string `json:"error"`
-		} `json:"data"`
-	}
-	if err := json.Unmarshal(resp.Body(), &er); err != nil {
-		return errors.WithMessage(ErrMCAPI, fmt.Sprintf("(HTTP Status: %d)- unable to parse json error response: %s", resp.RawResponse.StatusCode, err))
+		Error string `json:"error"`
 	}
 
-	return errors.WithMessage(ErrMCAPI, fmt.Sprintf("(HTTP Status: %d)- %s", resp.RawResponse.StatusCode, er.Data.Error))
+	if err := json.Unmarshal(resp.Body(), &er); err != nil {
+		return errors.New(fmt.Sprintf("mcapi (HTTP Status: %d)- unable to parse json error response: %s", resp.RawResponse.StatusCode, err))
+	}
+
+	return errors.New(fmt.Sprintf("mcapi (HTTP Status: %d)- %s", resp.RawResponse.StatusCode, er.Error))
 }
