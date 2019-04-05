@@ -63,12 +63,38 @@ func (c *Client) AddSampleToProcess(projectID, experimentID string, connect Conn
 	return &result.Data, nil
 }
 
-func (c *Client) AddMeasurementsToSampleInProcess() (*Sample, error) {
+type SampleProperty struct {
+	Name         string        `json:"name"`
+	ID           string        `json:"id,omitempty"`
+	Measurements []Measurement `json:"measurements"`
+}
+
+type SampleMeasurements struct {
+	SampleID      string
+	PropertySetID string
+	Attributes    []SampleProperty
+}
+
+func (c *Client) AddMeasurementsToSampleInProcess(projectID, experimentID, processID string, sm SampleMeasurements) (*Sample, error) {
 	var result struct {
 		Data Sample `json:"data"`
 	}
 
-	body := struct{}{}
+	body := struct {
+		ProjectID     string           `json:"project_id"`
+		ExperimentID  string           `json:"experiment_id"`
+		ProcessID     string           `json:"process_id"`
+		SampleID      string           `json:"sample_id"`
+		PropertySetID string           `json:"property_set_id"`
+		Attributes    []SampleProperty `json:"attributes"`
+	}{
+		ProjectID:     projectID,
+		ExperimentID:  experimentID,
+		ProcessID:     processID,
+		SampleID:      sm.SampleID,
+		PropertySetID: sm.PropertySetID,
+		Attributes:    sm.Attributes,
+	}
 
 	if err := c.post(&result, body, "addMeasurementsToSampleInProcess"); err != nil {
 		return nil, err

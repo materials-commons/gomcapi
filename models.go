@@ -113,9 +113,10 @@ type Property struct {
 }
 
 type Measurement struct {
-	OType string      `json:"otype"`
-	Unit  string      `json:"unit"`
-	Value interface{} `json:"value"`
+	OType         string      `json:"otype"`
+	Unit          string      `json:"unit"`
+	Value         interface{} `json:"value"`
+	IsBestMeasure bool        `json:"is_best_measure"`
 }
 
 type File struct {
