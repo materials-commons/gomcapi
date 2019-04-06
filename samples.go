@@ -96,6 +96,10 @@ func (c *Client) AddMeasurementsToSampleInProcess(projectID, experimentID, proce
 		Attributes:    sm.Attributes,
 	}
 
+	if body.Attributes == nil {
+		body.Attributes = make([]SampleProperty, 0)
+	}
+
 	if err := c.post(&result, body, "addMeasurementsToSampleInProcess"); err != nil {
 		return nil, err
 	}
