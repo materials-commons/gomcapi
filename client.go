@@ -30,12 +30,12 @@ func (c *Client) r() *resty.Request {
 	return resty.SetTLSClientConfig(&tlsConfig).R()
 }
 
-func (c *Client) Join(paths ...string) string {
+func (c *Client) join(paths ...string) string {
 	return urlpath.Join(c.BaseURL, paths...)
 }
 
 func (c *Client) post(result, body interface{}, paths ...string) error {
-	resp, err := r().SetResult(&result).SetBody(body).Post(c.Join(paths...))
+	resp, err := c.r().SetResult(&result).SetBody(body).Post(c.join(paths...))
 	return c.getAPIError(resp, err)
 }
 
