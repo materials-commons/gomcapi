@@ -20,6 +20,24 @@ func (c *Client) CreateProject(name, description string) (*Project, error) {
 	return &result.Data, nil
 }
 
+func (c *Client) GetProjectOverviewByName(name string) (*Project, error) {
+	body := struct {
+		Name string `json:"name"`
+	}{
+		Name: name,
+	}
+
+	var result struct {
+		Data Project `json:"data"`
+	}
+
+	if err := c.post(&result, body, "getProjectOverviewByName"); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
+
 func (c *Client) DeleteProject(projectID string) error {
 	body := map[string]interface{}{"project_id": projectID}
 
