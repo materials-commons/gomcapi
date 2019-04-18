@@ -27,7 +27,7 @@ func NewClient(baseURL string) *Client {
 }
 
 func (c *Client) r() *resty.Request {
-	return resty.SetTLSClientConfig(&tlsConfig).R()
+	return resty.SetTLSClientConfig(&tlsConfig).R().SetQueryParam("apikey", c.APIKey)
 }
 
 func (c *Client) join(paths ...string) string {
