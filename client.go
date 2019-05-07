@@ -35,31 +35,32 @@ func (c *Client) join(paths ...string) string {
 }
 
 func (c *Client) post(result, body interface{}, paths ...string) error {
-	resp, err := c.r().SetResult(&result).SetBody(body).Post(c.join(paths...))
-	return c.getAPIError(resp, err)
+	p := c.join(paths...)
+	resp, err := c.r().SetResult(&result).SetBody(body).Post(p)
+	return c.getAPIError(p, resp, err)
 }
 
-func (c *Client) getAPIError(resp *resty.Response, err error) error {
+func (c *Client) getAPIError(p string, resp *resty.Response, err error) error {
 	switch {
 	case err != nil:
 		return err
 	case resp.RawResponse.StatusCode == 401:
 		return ErrAuth
 	case resp.RawResponse.StatusCode > 299:
-		return c.toErrorFromResponse(resp)
+		return c.toErrorFromResponse(p, resp)
 	default:
 		return nil
 	}
 }
 
-func (c *Client) toErrorFromResponse(resp *resty.Response) error {
+func (c *Client) toErrorFromResponse(p string, resp *resty.Response) error {
 	var er struct {
 		Error string `json:"error"`
 	}
 
 	if err := json.Unmarshal(resp.Body(), &er); err != nil {
-		return errors.New(fmt.Sprintf("mcapi (HTTP Status: %d)- unable to parse json error response: %s", resp.RawResponse.StatusCode, err))
+		return errors.New(fmt.Sprintf("mcapi '%s' (HTTP Status: %d)- unable to parse json error response: %s", p, resp.RawResponse.StatusCode, err))
 	}
 
-	return errors.New(fmt.Sprintf("mcapi (HTTP Status: %d)- %s", resp.RawResponse.StatusCode, er.Error))
+	return errors.New(fmt.Sprintf("mcapi '%s' (HTTP Status: %d)- %s", p, resp.RawResponse.StatusCode, er.Error))
 }
