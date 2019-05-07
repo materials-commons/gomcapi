@@ -15,7 +15,7 @@ func TestCreateExperiment(t *testing.T) {
 
 	var e *Experiment
 
-	e, err = c.CreateExperiment(p.ID, uniqueName(t), "expdesc")
+	e, err = c.CreateExperiment(p.ID, uniqueName(t), "expdesc", false)
 	assert.Ok(t, err)
 	assert.NotNil(t, e)
 

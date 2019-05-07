@@ -45,7 +45,7 @@ func TestAddSampleToProcess(t *testing.T) {
 		PropertySetID: s.PropertySetID,
 		Transform:     true,
 	}
-	s, err = c.AddSampleToProcess(p.ID, e.ID, connect)
+	s, err = c.AddSampleToProcess(p.ID, e.ID, true, connect)
 	assert.Ok(t, err)
 	assert.NotNil(t, s)
 	fmt.Printf("%#v\n", s)
@@ -62,7 +62,7 @@ func createTestProjAndExperiment(t *testing.T, c *Client) (*Project, *Experiment
 	assert.Ok(t, err)
 	assert.NotNil(t, p)
 
-	e, err = c.CreateExperiment(p.ID, uniqueName(t), "test experiment")
+	e, err = c.CreateExperiment(p.ID, uniqueName(t), "test experiment", false)
 	assert.Ok(t, err)
 	assert.NotNil(t, e)
 
