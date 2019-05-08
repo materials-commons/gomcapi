@@ -120,4 +120,6 @@ type Measurement struct {
 }
 
 type File struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
 }
