@@ -108,8 +108,14 @@ type ConnectSampleAndFilesToProcess struct {
 	SampleID      string
 	PropertySetID string
 	Transform     bool
-	FilesByName   []string
-	FilesByID     []string
+	FilesByName   []FileAndDirection
+	FilesByID     []FileAndDirection
+}
+
+type FileAndDirection struct {
+	FileID    string `json:"file_id,omitempty"`
+	Path      string `json:"path,omitempty"`
+	Direction string `json:"direction"`
 }
 
 func (c *Client) AddSampleAndFilesToProcess(projectID, experimentID string, simple bool, connect ConnectSampleAndFilesToProcess) (*Sample, error) {
@@ -118,15 +124,15 @@ func (c *Client) AddSampleAndFilesToProcess(projectID, experimentID string, simp
 	}
 
 	body := struct {
-		ProjectID        string   `json:"project_id"`
-		ExperimentID     string   `json:"experiment_id"`
-		ProcessID        string   `json:"process_id"`
-		SampleID         string   `json:"sample_id"`
-		PropertySetID    string   `json:"property_set_id"`
-		Transform        bool     `json:"transform"`
-		FilesByName      []string `json:"files_by_name,omitempty"`
-		FilesByID        []string `json:"files_by_id,omitempty"`
-		ReturnFullSample bool     `json:"return_full_sample"`
+		ProjectID        string             `json:"project_id"`
+		ExperimentID     string             `json:"experiment_id"`
+		ProcessID        string             `json:"process_id"`
+		SampleID         string             `json:"sample_id"`
+		PropertySetID    string             `json:"property_set_id"`
+		Transform        bool               `json:"transform"`
+		FilesByName      []FileAndDirection `json:"files_by_name,omitempty"`
+		FilesByID        []FileAndDirection `json:"files_by_id,omitempty"`
+		ReturnFullSample bool               `json:"return_full_sample"`
 	}{
 		ProjectID:        projectID,
 		ExperimentID:     experimentID,
