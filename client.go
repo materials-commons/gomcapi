@@ -172,6 +172,7 @@ func (c *Client) UnpublishDataset(projectID int, datasetID int) (*mcmodel.Datase
 	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{dataset}).Put(url)
 
 	if err := checkError(resp, err); err != nil {
+		fmt.Printf(resp.String())
 		return nil, err
 	}
 	return dataset, nil
@@ -204,11 +205,21 @@ func (c *Client) CreateEntity(req CreateEntityRequest) (*mcmodel.Entity, error) 
 func (c *Client) CreateEntityState(projectID, entityID, activityID int, req CreateEntityStateRequest) (*mcmodel.Entity, error) {
 	entity := &mcmodel.Entity{}
 
-	url := c.BaseURL + fmt.Sprintf("/projects/%d/entities/%d/activities/%d", projectID, entityID, activityID)
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/entities/%d/activities/%d/create-entity-state", projectID, entityID, activityID)
 	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{entity}).Post(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
 	return entity, nil
+}
+
+func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmodel.File, error) {
+	file := &mcmodel.File{}
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/files/%d/files/upload", projectID, directoryID)
+	resp, err := c.c.R().SetFile("files", filePath).SetResult(&DataWrapper{file}).Post(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return file, nil
 }
