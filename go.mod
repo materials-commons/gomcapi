@@ -1,13 +1,11 @@
-module materials-commons/gomcapi
+module github.com/materials-commons/gomcapi
 
 go 1.22.1
 
 require (
 	github.com/go-resty/resty/v2 v2.14.0
 	github.com/materials-commons/config v0.0.0-20180218183642-ed5747ab2e08
-	github.com/materials-commons/gomcapi v0.0.0-20190717172903-ed7bad292fda
 	github.com/materials-commons/hydra v0.0.0-20240823120711-9a7669a999c5
-	github.com/pkg/errors v0.9.1
 )
 
 require (
