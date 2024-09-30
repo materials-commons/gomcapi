@@ -3,6 +3,8 @@ package mcapi
 import (
 	"crypto/tls"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -13,6 +15,10 @@ import (
 // {"data": {"id": 1,... }}. It is used to get at the underlying data object.
 type DataWrapper struct {
 	Data any `json:"data"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 // APIError is an error that stores the StatusCode and Status from the response.
@@ -29,9 +35,17 @@ func (e *APIError) Error() string {
 // NewAPIError creates an instance of APIError from a resty.Response. It extracts the
 // StatusCode and Status from the response.
 func NewAPIError(resp *resty.Response) *APIError {
+	respErr := ""
+	if resp.Error() != nil {
+		errResponse := resp.Error().(*ErrorResponse)
+		respErr = errResponse.Error
+		if respErr == "" {
+			respErr = string(resp.Body())
+		}
+	}
 	return &APIError{
 		StatusCode: resp.StatusCode(),
-		Status:     resp.Status(),
+		Status:     fmt.Sprintf("%s: %s", resp.Status(), respErr),
 	}
 }
 
@@ -42,7 +56,7 @@ var tlsConfig = tls.Config{InsecureSkipVerify: true}
 type Client struct {
 	APIKey  string
 	BaseURL string
-	c       *resty.Client
+	rClient *resty.Client
 }
 
 // ClientArgs are the arguments when creating the client. You specify the URL to the server and the
@@ -62,6 +76,7 @@ func NewClient(args *ClientArgs) *Client {
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json").
 		SetAuthToken(args.APIKey)
+
 	baseURL := "https://materialscommons.org/api"
 	if args.BaseURL != "" {
 		baseURL = strings.TrimSuffix(args.BaseURL, "/")
@@ -69,8 +84,12 @@ func NewClient(args *ClientArgs) *Client {
 	return &Client{
 		BaseURL: baseURL,
 		APIKey:  args.APIKey,
-		c:       c,
+		rClient: c,
 	}
+}
+
+func (c *Client) SetDebug(on bool) {
+	c.rClient.SetDebug(on)
 }
 
 func checkError(resp *resty.Response, err error) error {
@@ -83,11 +102,19 @@ func checkError(resp *resty.Response, err error) error {
 	return nil
 }
 
+func (c *Client) r() *resty.Request {
+	return c.rClient.R()
+}
+
 func (c *Client) CreateProject(req CreateProjectRequest) (*mcmodel.Project, error) {
 	proj := &mcmodel.Project{}
 
 	url := c.BaseURL + "/projects"
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{proj}).Post(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{proj}).
+		Post(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -100,7 +127,10 @@ func (c *Client) GetProject(id int) (*mcmodel.Project, error) {
 	proj := &mcmodel.Project{}
 
 	url := c.BaseURL + fmt.Sprintf("/projects/%d", id)
-	resp, err := c.c.R().SetResult(&DataWrapper{proj}).Get(url)
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{proj}).
+		Get(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -109,11 +139,23 @@ func (c *Client) GetProject(id int) (*mcmodel.Project, error) {
 	return proj, nil
 }
 
+func (c *Client) DeleteProject(id int) error {
+	url := c.BaseURL + fmt.Sprintf("/projects/%d", id)
+	resp, err := c.r().Delete(url)
+	return checkError(resp, err)
+}
+
 func (c *Client) CreateDataset(projectID int, req CreateOrUpdateDatasetRequest) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 
 	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets", projectID)
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{dataset}).Post(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Post(url)
+
+	//fmt.Println("create dataset request:", resp.Request.)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -125,7 +167,10 @@ func (c *Client) GetDataset(projectID int, datasetID int) (*mcmodel.Dataset, err
 	dataset := &mcmodel.Dataset{}
 
 	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d", projectID, datasetID)
-	resp, err := c.c.R().SetResult(&DataWrapper{dataset}).Get(url)
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Get(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -137,8 +182,45 @@ func (c *Client) UpdateDataset(projectID int, datasetID int, req CreateOrUpdateD
 	dataset := &mcmodel.Dataset{}
 
 	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d", projectID, datasetID)
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{dataset}).Put(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Put(url)
 
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return dataset, nil
+}
+
+func (c *Client) UpdateDatasetFileSelection(projectID, datasetID int, fileSelection DatasetFileSelection) (*mcmodel.Dataset, error) {
+	dataset := &mcmodel.Dataset{}
+
+	if fileSelection.ExcludeFiles == nil {
+		fileSelection.ExcludeFiles = []string{}
+	}
+
+	if fileSelection.IncludeFiles == nil {
+		fileSelection.IncludeFiles = []string{}
+	}
+
+	if fileSelection.ExcludeDirs == nil {
+		fileSelection.ExcludeDirs = []string{}
+	}
+
+	if fileSelection.IncludeDirs == nil {
+		fileSelection.IncludeDirs = []string{}
+	}
+
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/change_file_selection", projectID, datasetID)
+	resp, err := c.r().
+		SetBody(fileSelection).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Put(url)
+
+	fmt.Println("request:", resp.Request.Body)
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
@@ -153,7 +235,11 @@ func (c *Client) PublishDataset(projectID int, datasetID int) (*mcmodel.Dataset,
 	req.ProjectID = projectID
 
 	url := c.BaseURL + fmt.Sprintf("/datasets/%d/publish", datasetID)
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{dataset}).Put(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Put(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -169,7 +255,11 @@ func (c *Client) UnpublishDataset(projectID int, datasetID int) (*mcmodel.Datase
 	req.ProjectID = projectID
 
 	url := c.BaseURL + fmt.Sprintf("/datasets/%d/unpublish", datasetID)
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{dataset}).Put(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{dataset}).
+		Put(url)
 
 	if err := checkError(resp, err); err != nil {
 		fmt.Printf(resp.String())
@@ -182,7 +272,11 @@ func (c *Client) CreateActivity(req CreateActivityRequest) (*mcmodel.Activity, e
 	activity := &mcmodel.Activity{}
 
 	url := c.BaseURL + "/activities"
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{activity}).Post(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{activity}).
+		Post(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -194,7 +288,11 @@ func (c *Client) CreateEntity(req CreateEntityRequest) (*mcmodel.Entity, error) 
 	entity := &mcmodel.Entity{}
 
 	url := c.BaseURL + "/entities"
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{entity}).Post(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{entity}).
+		Post(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -206,7 +304,11 @@ func (c *Client) CreateEntityState(projectID, entityID, activityID int, req Crea
 	entity := &mcmodel.Entity{}
 
 	url := c.BaseURL + fmt.Sprintf("/projects/%d/entities/%d/activities/%d/create-entity-state", projectID, entityID, activityID)
-	resp, err := c.c.R().SetBody(req).SetResult(&DataWrapper{entity}).Post(url)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{entity}).
+		Post(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -215,11 +317,29 @@ func (c *Client) CreateEntityState(projectID, entityID, activityID int, req Crea
 }
 
 func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmodel.File, error) {
-	file := &mcmodel.File{}
-	url := c.BaseURL + fmt.Sprintf("/projects/%d/files/%d/files/upload", projectID, directoryID)
-	resp, err := c.c.R().SetFile("files", filePath).SetResult(&DataWrapper{file}).Post(url)
+	var files [1]mcmodel.File
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+
+	fileName := filepath.Base(filePath)
+
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/files/%d/upload", projectID, directoryID)
+	resp, err := c.r().
+		SetFileReader("files[]", fileName, f).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&files}).
+		Post(url)
+
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
-	return file, nil
+
+	return &files[0], nil
 }

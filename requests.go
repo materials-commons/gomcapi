@@ -1,5 +1,12 @@
 package mcapi
 
+type DatasetFileSelection struct {
+	IncludeFiles []string `json:"include_files"`
+	ExcludeFiles []string `json:"exclude_files"`
+	IncludeDirs  []string `json:"include_dirs"`
+	ExcludeDirs  []string `json:"exclude_dirs"`
+}
+
 type CreateOrUpdateDatasetRequest struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
