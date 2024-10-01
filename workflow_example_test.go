@@ -75,7 +75,7 @@ func TestWorkflow_ExampleCreateEntityState(t *testing.T) {
 
 	// Give time to complete publishing the dataset
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		ds, err = c.GetDataset(proj.ID, ds.ID)
 		if !ds.PublishedAt.IsZero() {
 			break
@@ -93,7 +93,7 @@ func TestWorkflow_ExampleCreateEntityState(t *testing.T) {
 
 	// Give time to complete unpublishing the dataset
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		ds, err = c.GetDataset(proj.ID, ds.ID)
 		if ds.PublishedAt.IsZero() {
 			break
