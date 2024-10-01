@@ -35,6 +35,13 @@ type CreateProjectRequest struct {
 	Summary     string `json:"summary"`
 }
 
+type CreateExperimentRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Summary     string `json:"summary"`
+	ProjectID   int    `json:"project_id"`
+}
+
 type CreateActivityRequest struct {
 	Name         string      `json:"name"`
 	Description  string      `json:"description"`
@@ -45,6 +52,7 @@ type CreateActivityRequest struct {
 
 type CreateEntityRequest struct {
 	Name         string      `json:"name"`
+	Category     string      `json:"category"`
 	Description  string      `json:"description"`
 	Summary      string      `json:"summary"`
 	ExperimentID int         `json:"experiment_id"`

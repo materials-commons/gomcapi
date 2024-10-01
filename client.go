@@ -145,6 +145,22 @@ func (c *Client) DeleteProject(id int) error {
 	return checkError(resp, err)
 }
 
+func (c *Client) CreateExperiment(request CreateExperimentRequest) (*mcmodel.Experiment, error) {
+	experiment := &mcmodel.Experiment{}
+
+	url := c.BaseURL + "/experiments"
+	resp, err := c.r().
+		SetBody(request).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{experiment}).
+		Post(url)
+
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return experiment, nil
+}
+
 func (c *Client) CreateDataset(projectID int, req CreateOrUpdateDatasetRequest) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 
@@ -154,8 +170,6 @@ func (c *Client) CreateDataset(projectID int, req CreateOrUpdateDatasetRequest) 
 		SetError(&ErrorResponse{}).
 		SetResult(&DataWrapper{dataset}).
 		Post(url)
-
-	//fmt.Println("create dataset request:", resp.Request.)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -220,7 +234,6 @@ func (c *Client) UpdateDatasetFileSelection(projectID, datasetID int, fileSelect
 		SetResult(&DataWrapper{dataset}).
 		Put(url)
 
-	fmt.Println("request:", resp.Request.Body)
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
@@ -286,6 +299,14 @@ func (c *Client) CreateActivity(req CreateActivityRequest) (*mcmodel.Activity, e
 
 func (c *Client) CreateEntity(req CreateEntityRequest) (*mcmodel.Entity, error) {
 	entity := &mcmodel.Entity{}
+
+	if req.Category == "" {
+		req.Category = "experimental"
+	}
+
+	if req.Category != "experimental" && req.Category != "computational" {
+		return nil, fmt.Errorf("category must be either 'experimental' or 'computational'")
+	}
 
 	url := c.BaseURL + "/entities"
 	resp, err := c.r().
