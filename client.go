@@ -106,6 +106,7 @@ func (c *Client) r() *resty.Request {
 	return c.rClient.R()
 }
 
+// CreateProject creates a new project with the specified parameters in CreateProjectRequest and returns the created project.
 func (c *Client) CreateProject(req CreateProjectRequest) (*mcmodel.Project, error) {
 	proj := &mcmodel.Project{}
 
@@ -123,6 +124,8 @@ func (c *Client) CreateProject(req CreateProjectRequest) (*mcmodel.Project, erro
 	return proj, nil
 }
 
+// GetProject retrieves the project details for the given project ID.
+// It returns a pointer to the Project object and an error, if any.
 func (c *Client) GetProject(id int) (*mcmodel.Project, error) {
 	proj := &mcmodel.Project{}
 
@@ -139,12 +142,16 @@ func (c *Client) GetProject(id int) (*mcmodel.Project, error) {
 	return proj, nil
 }
 
+// DeleteProject deletes a project identified by the provided ID.
+// It makes a DELETE request to the API endpoint corresponding to the given project ID.
+// Returns an error if the project could not be deleted or if there is any issue with the request.
 func (c *Client) DeleteProject(id int) error {
 	url := c.BaseURL + fmt.Sprintf("/projects/%d", id)
 	resp, err := c.r().Delete(url)
 	return checkError(resp, err)
 }
 
+// CreateExperiment creates a new experiment based on the given CreateExperimentRequest.
 func (c *Client) CreateExperiment(request CreateExperimentRequest) (*mcmodel.Experiment, error) {
 	experiment := &mcmodel.Experiment{}
 
@@ -161,6 +168,9 @@ func (c *Client) CreateExperiment(request CreateExperimentRequest) (*mcmodel.Exp
 	return experiment, nil
 }
 
+// CreateDataset creates a new dataset within the specified project.
+// It takes a projectID and a CreateOrUpdateDatasetRequest as parameters.
+// It returns a pointer to the created Dataset object or an error, if any occurs.
 func (c *Client) CreateDataset(projectID int, req CreateOrUpdateDatasetRequest) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 
@@ -192,6 +202,9 @@ func (c *Client) GetDataset(projectID int, datasetID int) (*mcmodel.Dataset, err
 	return dataset, nil
 }
 
+// UpdateDataset updates an existing dataset for the given project.
+// Takes in a projectID, datasetID, and a CreateOrUpdateDatasetRequest object.
+// Returns the updated Dataset object or an error if the update fails.
 func (c *Client) UpdateDataset(projectID int, datasetID int, req CreateOrUpdateDatasetRequest) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 
@@ -208,6 +221,8 @@ func (c *Client) UpdateDataset(projectID int, datasetID int, req CreateOrUpdateD
 	return dataset, nil
 }
 
+// UpdateDatasetFileSelection updates the file selection criteria for a specified dataset within a project.
+// It includes and excludes specified files and directories based on the DatasetFileSelection object.
 func (c *Client) UpdateDatasetFileSelection(projectID, datasetID int, fileSelection DatasetFileSelection) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 
@@ -240,6 +255,8 @@ func (c *Client) UpdateDatasetFileSelection(projectID, datasetID int, fileSelect
 	return dataset, nil
 }
 
+// PublishDataset publishes a specified dataset by its datasetID in a particular project identified by projectID.
+// Returns the published Dataset object or an error if the operation fails.
 func (c *Client) PublishDataset(projectID int, datasetID int) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 	var req struct {
@@ -260,6 +277,8 @@ func (c *Client) PublishDataset(projectID int, datasetID int) (*mcmodel.Dataset,
 	return dataset, nil
 }
 
+// UnpublishDataset unpublishes a dataset associated with a specified project and dataset ID,
+// returning the updated dataset or an error if the operation fails.
 func (c *Client) UnpublishDataset(projectID int, datasetID int) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 	var req struct {
@@ -281,6 +300,7 @@ func (c *Client) UnpublishDataset(projectID int, datasetID int) (*mcmodel.Datase
 	return dataset, nil
 }
 
+// CreateActivity creates a new activity based on the provided CreateActivityRequest struct.
 func (c *Client) CreateActivity(req CreateActivityRequest) (*mcmodel.Activity, error) {
 	activity := &mcmodel.Activity{}
 
@@ -297,6 +317,8 @@ func (c *Client) CreateActivity(req CreateActivityRequest) (*mcmodel.Activity, e
 	return activity, nil
 }
 
+// CreateEntity creates a new entity based on the provided request and returns the created entity or an error.
+// The category in the request must be either 'experimental' or 'computational'. Defaults to 'experimental'.
 func (c *Client) CreateEntity(req CreateEntityRequest) (*mcmodel.Entity, error) {
 	entity := &mcmodel.Entity{}
 
@@ -321,6 +343,7 @@ func (c *Client) CreateEntity(req CreateEntityRequest) (*mcmodel.Entity, error) 
 	return entity, nil
 }
 
+// CreateEntityState creates a new entity state associated with the provided project, entity, and activity IDs.
 func (c *Client) CreateEntityState(projectID, entityID, activityID int, req CreateEntityStateRequest) (*mcmodel.Entity, error) {
 	entity := &mcmodel.Entity{}
 
@@ -337,6 +360,76 @@ func (c *Client) CreateEntityState(projectID, entityID, activityID int, req Crea
 	return entity, nil
 }
 
+// GetFileByPath fetches a file from a project given the specified project ID and file path.
+// It returns a pointer to the file and an error if the fetch operation fails.
+func (c *Client) GetFileByPath(projectID int, path string) (*mcmodel.File, error) {
+	file := &mcmodel.File{}
+	req := struct {
+		ProjectID int    `json:"project_id"`
+		Path      string `json:"path"`
+	}{
+		ProjectID: projectID,
+		Path:      path,
+	}
+
+	url := c.BaseURL + "/files/by_path"
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{file}).
+		Post(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+// CreateDirectoryByPath creates a directory at the specified path within the given project. If the
+// directory already exists, it returns the existing directory. It takes a project ID and a path as
+// parameters and returns the created directory or an error.
+func (c *Client) CreateDirectoryByPath(projectID int, path string) (*mcmodel.File, error) {
+	file := &mcmodel.File{}
+	req := struct {
+		ProjectID int    `json:"project_id"`
+		Path      string `json:"path"`
+	}{
+		ProjectID: projectID,
+		Path:      path,
+	}
+
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{file}).
+		Post(c.BaseURL + "/directories/by-path")
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+// UploadFileTo uploads a file to a specified project directory path. If the project directory path is
+// blank then it uploads the file to the project root. If the directory does not exist, it creates it.
+func (c *Client) UploadFileTo(projectID int, filePath string, projectPath string) (*mcmodel.File, error) {
+	if projectPath == "" {
+		projectPath = "/"
+	}
+	dir, err := c.CreateDirectoryByPath(projectID, projectPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.UploadFile(projectID, dir.ID, filePath)
+}
+
+// UploadFile uploads a file to the specified project and directory.
+// Parameters:
+// - projectID: ID of the project to which the file will be uploaded.
+// - directoryID: ID of the directory within the project where the file will be stored.
+// - filePath: Local path of the file to be uploaded.
+// Returns:
+// - *mcmodel.File: Uploaded file metadata if the operation is successful.
+// - error: Describes the error encountered during file upload.
 func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmodel.File, error) {
 	var files [1]mcmodel.File
 
