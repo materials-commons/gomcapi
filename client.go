@@ -294,7 +294,6 @@ func (c *Client) UnpublishDataset(projectID int, datasetID int) (*mcmodel.Datase
 		Put(url)
 
 	if err := checkError(resp, err); err != nil {
-		fmt.Printf(resp.String())
 		return nil, err
 	}
 	return dataset, nil
@@ -456,4 +455,67 @@ func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmod
 	}
 
 	return &files[0], nil
+}
+
+func (c *Client) DepositDataset(projectID int, req DepositDatasetRequest) (*mcmodel.Dataset, error) {
+	// 1. Create the dataset.
+	createDatasetReq := CreateOrUpdateDatasetRequest{
+		Name:        req.Metadata.Name,
+		Description: req.Metadata.Description,
+		Summary:     req.Metadata.Summary,
+		License:     req.Metadata.License,
+		Funding:     req.Metadata.Funding,
+		//Experiments: nil,
+		//Communities: nil,
+		Tags:    req.Metadata.Tags,
+		Authors: req.Metadata.Authors,
+	}
+	dataset, err := c.CreateDataset(projectID, createDatasetReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Add the additional metadata to the dataset
+	// 3. Upload the files
+	//    Create a unique directory for the dataset in the project?
+	//    Or should we instead create a project per dataset?
+
+	// For now lets create a unique directory. This makes dataset file selection easy.
+	// The directory will have the dataset UUID as its name. This is kind of a crappy
+	// solution, but for now let's start with that. We can revise this decision
+	// later on after discussing with Valentin.
+	dir, err := c.CreateDirectoryByPath(projectID, "/"+dataset.UUID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Now for each of the files we are uploading, we need to append
+	// the created directory to its path.
+	for _, file := range req.Files {
+		fileDir := file.Directory
+		if fileDir == "" {
+			fileDir = "/"
+		} else {
+			fileDir = fileDir + "/"
+		}
+		_, err := c.UploadFileTo(projectID, file.File, dir.Path+file.Directory)
+		if err != nil {
+			// For now lets stop all uploads and return an error
+			return nil, err
+		}
+	}
+
+	// 4. Set the dataset file selection
+	fileSelection := DatasetFileSelection{
+		IncludeFiles: nil,
+		ExcludeFiles: nil,
+		IncludeDirs:  []string{"/" + dataset.UUID},
+		ExcludeDirs:  nil,
+	}
+	dataset, err = c.UpdateDatasetFileSelection(projectID, dataset.ID, fileSelection)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataset, nil
 }

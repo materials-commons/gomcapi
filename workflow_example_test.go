@@ -119,9 +119,9 @@ func TestWorkflow_ExampleCreateWorkflow(t *testing.T) {
 
 	fmt.Printf("%+v\n", entity)
 
-	//if err := c.DeleteProject(proj.ID); err != nil {
-	//	t.Error(err)
-	//}
+	if err := c.DeleteProject(proj.ID); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestWorkflow_ExampleCreatePublishedDataset(t *testing.T) {
@@ -199,6 +199,8 @@ func TestWorkflow_ExampleCreatePublishedDataset(t *testing.T) {
 			break
 		}
 	}
+
+	fmt.Printf("after publishing %+v\n", ds)
 
 	// Clean up by removing project
 
