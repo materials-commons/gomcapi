@@ -457,6 +457,8 @@ func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmod
 	return &files[0], nil
 }
 
+// DepositDataset deposits a dataset in a specified project given the project ID and request details.
+// It creates the dataset, uploads files into a unique directory, and sets file selection for the dataset.
 func (c *Client) DepositDataset(projectID int, req DepositDatasetRequest) (*mcmodel.Dataset, error) {
 	// 1. Create the dataset.
 	createDatasetReq := CreateOrUpdateDatasetRequest{
