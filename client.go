@@ -521,3 +521,31 @@ func (c *Client) DepositDataset(projectID int, req DepositDatasetRequest) (*mcmo
 
 	return dataset, nil
 }
+
+// ListProjects lists all the projects a user is a member of
+func (c *Client) ListProjects() ([]mcmodel.Project, error) {
+	var projects []mcmodel.Project
+	url := c.BaseURL + "/projects"
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&projects}).
+		Get(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return projects, nil
+}
+
+// ListDatasets lists all the datasets in a project
+func (c *Client) ListDatasets(projectID int) ([]mcmodel.Dataset, error) {
+	var datasets []mcmodel.Dataset
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets", projectID)
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&datasets}).
+		Get(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return datasets, nil
+}

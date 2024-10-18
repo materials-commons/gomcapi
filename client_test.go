@@ -105,6 +105,33 @@ func TestClient_CreateEntity(t *testing.T) {
 	fmt.Printf("%+v\n", entity)
 }
 
+func TestClient_ListProjects(t *testing.T) {
+	c := newClientForTest()
+	projects, err := c.ListProjects()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%d\n", len(projects))
+	for _, p := range projects {
+		fmt.Printf("%+v\n", p)
+	}
+}
+
+func TestClient_ListDatasets(t *testing.T) {
+	c := newClientForTest()
+	datasets, err := c.ListDatasets(438)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%d\n", len(datasets))
+
+	for _, d := range datasets {
+		fmt.Printf("%+v\n", d)
+	}
+}
+
 func TestClient_CreateEntityState(t *testing.T) {
 	c := newClientForTest()
 	req := CreateActivityRequest{
