@@ -549,17 +549,3 @@ func (c *Client) ListDatasets(projectID int) ([]mcmodel.Dataset, error) {
 	}
 	return datasets, nil
 }
-
-// MintDOIForDataset mints a new (findable) DOI for the dataset and assigns the DOI to it.
-func (c *Client) MintDOIForDataset(projectID, datasetID int) (*mcmodel.Dataset, error) {
-	var dataset mcmodel.Dataset
-	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/assign_doi", projectID, datasetID)
-	resp, err := c.r().
-		SetError(&ErrorResponse{}).
-		SetResult(&DataWrapper{&dataset}).
-		Put(url)
-	if err := checkError(resp, err); err != nil {
-		return nil, err
-	}
-	return &dataset, nil
-}
