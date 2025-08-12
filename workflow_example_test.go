@@ -182,7 +182,17 @@ func TestWorkflow_ExampleCreatePublishedDataset(t *testing.T) {
 
 	fmt.Printf("%+v\n", ds)
 
-	ds, err = c.PublishDataset(proj.ID, ds.ID)
+	// Add a test DOI to the dataset
+	ds, err = c.MintDOIForDataset(proj.ID, ds.ID, true)
+	if err != nil {
+		_ = c.DeleteProject(proj.ID)
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%+v\n", ds)
+
+	// Publish the dataset as a test dataset
+	ds, err = c.PublishDataset(proj.ID, ds.ID, true)
 
 	if err != nil {
 		_ = c.DeleteProject(proj.ID)

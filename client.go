@@ -257,19 +257,24 @@ func (c *Client) UpdateDatasetFileSelection(projectID, datasetID int, fileSelect
 
 // PublishDataset publishes a specified dataset by its datasetID in a particular project identified by projectID.
 // Returns the published Dataset object or an error if the operation fails.
-func (c *Client) PublishDataset(projectID int, datasetID int) (*mcmodel.Dataset, error) {
+func (c *Client) PublishDataset(projectID int, datasetID int, publishAsTestDataset bool) (*mcmodel.Dataset, error) {
 	dataset := &mcmodel.Dataset{}
 	var req struct {
 		ProjectID int `json:"project_id"`
 	}
 	req.ProjectID = projectID
-
 	url := c.BaseURL + fmt.Sprintf("/datasets/%d/publish", datasetID)
-	resp, err := c.r().
+
+	request := c.r().
 		SetBody(req).
 		SetError(&ErrorResponse{}).
-		SetResult(&DataWrapper{dataset}).
-		Put(url)
+		SetResult(&DataWrapper{dataset})
+
+	if publishAsTestDataset {
+		request = request.SetQueryParam("test", "true")
+	}
+
+	resp, err := request.Put(url)
 
 	if err := checkError(resp, err); err != nil {
 		return nil, err
@@ -551,13 +556,21 @@ func (c *Client) ListDatasets(projectID int) ([]mcmodel.Dataset, error) {
 }
 
 // MintDOIForDataset mints a new (findable) DOI for the dataset and assigns the DOI to it.
-func (c *Client) MintDOIForDataset(projectID, datasetID int) (*mcmodel.Dataset, error) {
+func (c *Client) MintDOIForDataset(projectID, datasetID int, publishAsTestDataset bool) (*mcmodel.Dataset, error) {
 	var dataset mcmodel.Dataset
-	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/assign_doi", projectID, datasetID)
-	resp, err := c.r().
+
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/assign_doi%s", projectID, datasetID)
+
+	request := c.r().
 		SetError(&ErrorResponse{}).
-		SetResult(&DataWrapper{&dataset}).
-		Put(url)
+		SetResult(&DataWrapper{&dataset})
+
+	if publishAsTestDataset {
+		request = request.SetQueryParam("test", "true")
+	}
+
+	resp, err := request.Put(url)
+
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
