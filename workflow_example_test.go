@@ -205,7 +205,7 @@ func TestWorkflow_ExampleCreatePublishedDataset(t *testing.T) {
 	for {
 		time.Sleep(2 * time.Second)
 		ds, err = c.GetDataset(proj.ID, ds.ID)
-		if !ds.PublishedAt.IsZero() {
+		if !ds.PublishedAt.IsZero() || !ds.TestPublishedAt.IsZero() {
 			break
 		}
 	}

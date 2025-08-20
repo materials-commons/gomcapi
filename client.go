@@ -559,7 +559,7 @@ func (c *Client) ListDatasets(projectID int) ([]mcmodel.Dataset, error) {
 func (c *Client) MintDOIForDataset(projectID, datasetID int, publishAsTestDataset bool) (*mcmodel.Dataset, error) {
 	var dataset mcmodel.Dataset
 
-	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/assign_doi%s", projectID, datasetID)
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/datasets/%d/assign_doi", projectID, datasetID)
 
 	request := c.r().
 		SetError(&ErrorResponse{}).

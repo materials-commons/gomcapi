@@ -5,7 +5,7 @@ go 1.22.1
 require (
 	github.com/go-resty/resty/v2 v2.14.0
 	github.com/materials-commons/config v0.0.0-20180218183642-ed5747ab2e08
-	github.com/materials-commons/hydra v1.0.0
+	github.com/materials-commons/hydra v1.0.1
 )
 
 //replace "github.com/materials-commons/hydra" => "/home/gtarcea/workspace/src/github.com/materials-commons/hydra"
