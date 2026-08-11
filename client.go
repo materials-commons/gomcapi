@@ -394,7 +394,7 @@ func (c *Client) ListDirectoryByPath(projectID int, path string) ([]mcmodel.File
 	resp, err := c.r().
 		SetQueryParam("path", path).
 		SetError(&ErrorResponse{}).
-		SetResult(&DataWrapper{files}).
+		SetResult(&DataWrapper{&files}).
 		Get(url)
 	if err := checkError(resp, err); err != nil {
 		return nil, err
