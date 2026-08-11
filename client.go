@@ -399,6 +399,16 @@ func (c *Client) ListDirectoryByPath(projectID int, path string) ([]mcmodel.File
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
+
+	for i := 0; i < len(files); i++ {
+		if files[i].Directory != nil {
+			if files[i].Directory.Path == "/" {
+				files[i].Path = files[i].Directory.Path + files[i].Name
+			} else {
+				files[i].Path = files[i].Directory.Path + "/" + files[i].Name
+			}
+		}
+	}
 	return files, nil
 }
 
