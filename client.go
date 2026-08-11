@@ -388,6 +388,20 @@ func (c *Client) GetFileByPath(projectID int, path string) (*mcmodel.File, error
 	return file, nil
 }
 
+func (c *Client) ListDirectoryByPath(projectID int, path string) ([]mcmodel.File, error) {
+	var files []mcmodel.File
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/directories_by_path", projectID)
+	resp, err := c.r().
+		SetQueryParam("path", path).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{files}).
+		Get(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
 // CreateDirectoryByPath creates a directory at the specified path within the given project. If the
 // directory already exists, it returns the existing directory. It takes a project ID and a path as
 // parameters and returns the created directory or an error.
@@ -575,4 +589,52 @@ func (c *Client) MintDOIForDataset(projectID, datasetID int, publishAsTestDatase
 		return nil, err
 	}
 	return &dataset, nil
+}
+
+func (c *Client) GetPublishedDatasetByDOI(doi string, isPublishedTestDataset bool) (*mcmodel.Dataset, error) {
+	var dataset mcmodel.Dataset
+	req := struct {
+		DOI string `json:"doi"`
+	}{
+		DOI: doi,
+	}
+	url := c.BaseURL + "/published/datasets/by-doi"
+	r := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&dataset})
+
+	if isPublishedTestDataset {
+		r = r.SetQueryParam("test", "true")
+	}
+
+	resp, err := r.Post(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+
+	return &dataset, nil
+}
+
+func (c *Client) ListPublishedDatasetsByName(name string, isPublishedTestDatasets bool) ([]mcmodel.Dataset, error) {
+	var datasets []mcmodel.Dataset
+	req := struct {
+		Name string `json:"name"`
+	}{
+		Name: name,
+	}
+
+	url := c.BaseURL + "/published/datasets/by-name"
+	r := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&datasets})
+	if isPublishedTestDatasets {
+		r = r.SetQueryParam("test", "true")
+	}
+	resp, err := r.Post(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+	return datasets, nil
 }
