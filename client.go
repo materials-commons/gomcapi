@@ -385,6 +385,9 @@ func (c *Client) GetFileByPath(projectID int, path string) (*mcmodel.File, error
 	if err := checkError(resp, err); err != nil {
 		return nil, err
 	}
+
+	setFilePath(file)
+
 	return file, nil
 }
 
@@ -410,6 +413,16 @@ func (c *Client) ListDirectoryByPath(projectID int, path string) ([]mcmodel.File
 		}
 	}
 	return files, nil
+}
+
+func setFilePath(f *mcmodel.File) {
+	if f.Directory != nil {
+		if f.Directory.Path == "/" {
+			f.Path = f.Directory.Path + f.Name
+		} else {
+			f.Path = f.Directory.Path + "/" + f.Name
+		}
+	}
 }
 
 // CreateDirectoryByPath creates a directory at the specified path within the given project. If the
