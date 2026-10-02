@@ -403,16 +403,21 @@ func (c *Client) ListDirectoryByPath(projectID int, path string) ([]mcmodel.File
 		return nil, err
 	}
 
-	for i := 0; i < len(files); i++ {
-		if files[i].Directory != nil {
-			if files[i].Directory.Path == "/" {
-				files[i].Path = files[i].Directory.Path + files[i].Name
-			} else {
-				files[i].Path = files[i].Directory.Path + "/" + files[i].Name
-			}
-		}
+	return setFilePathOnList(files), nil
+}
+
+func (c *Client) GetFileVersions(projectID, fileID int) ([]mcmodel.File, error) {
+	var files []mcmodel.File
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/files/%d/versions", projectID, fileID)
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&files}).
+		Get(url)
+	if err := checkError(resp, err); err != nil {
+		return nil, err
 	}
-	return files, nil
+
+	return setFilePathOnList(files), nil
 }
 
 func setFilePath(f *mcmodel.File) {
@@ -423,6 +428,13 @@ func setFilePath(f *mcmodel.File) {
 			f.Path = f.Directory.Path + "/" + f.Name
 		}
 	}
+}
+
+func setFilePathOnList(files []mcmodel.File) []mcmodel.File {
+	for i := 0; i < len(files); i++ {
+		setFilePath(&files[i])
+	}
+	return files
 }
 
 // CreateDirectoryByPath creates a directory at the specified path within the given project. If the
