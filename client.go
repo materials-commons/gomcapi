@@ -499,6 +499,106 @@ func (c *Client) UploadFile(projectID, directoryID int, filePath string) (*mcmod
 	return &files[0], nil
 }
 
+// MoveFile moves a file within a project into an existing directory in the project. To rename a file, use RenameFile.
+func (c *Client) MoveFile(projectID int, fileID int, toDirectoryID int) (*mcmodel.File, error) {
+	var file mcmodel.File
+	req := struct {
+		ProjectID   int `json:"project_id"`
+		DirectoryID int `json:"directory_id"`
+	}{
+		ProjectID:   projectID,
+		DirectoryID: toDirectoryID,
+	}
+
+	url := c.BaseURL + fmt.Sprintf("/files/%d/move", fileID)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&file}).
+		Post(url)
+
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+
+	return &file, nil
+}
+
+// RenameFile renames a file within a project. To move a file into a different directory, use MoveFile.
+func (c *Client) RenameFile(projectID int, fileID int, newName string) (*mcmodel.File, error) {
+	var file mcmodel.File
+	req := struct {
+		Name      string `json:"name"`
+		ProjectID int    `json:"project_id"`
+	}{
+		ProjectID: projectID,
+		Name:      newName,
+	}
+
+	url := c.BaseURL + fmt.Sprintf("/files/%d/rename", fileID)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&file}).
+		Post(url)
+
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+
+	return &file, nil
+}
+
+// MoveDirectory moves a directory within a project into an existing directory in the project. To rename a directory, use RenameDirectory.
+func (c *Client) MoveDirectory(projectID int, directoryID int, toDirectoryID int) (*mcmodel.File, error) {
+	var file mcmodel.File
+	req := struct {
+		ProjectID     int `json:"project_id"`
+		ToDirectoryID int `json:"directory_id"`
+	}{
+		ProjectID:     projectID,
+		ToDirectoryID: toDirectoryID,
+	}
+
+	url := c.BaseURL + fmt.Sprintf("/directories/%d/move", directoryID)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&file}).
+		Post(url)
+
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+
+	return &file, nil
+}
+
+// RenameDirectory renames a directory within a project. To move a directory into a different directory, use MoveDirectory.
+func (c *Client) RenameDirectory(projectID int, directoryID int, newName string) (*mcmodel.File, error) {
+	var file mcmodel.File
+	req := struct {
+		Name      string `json:"name"`
+		ProjectID int    `json:"project_id"`
+	}{
+		ProjectID: projectID,
+		Name:      newName,
+	}
+
+	url := c.BaseURL + fmt.Sprintf("/directories/%d/rename", directoryID)
+	resp, err := c.r().
+		SetBody(req).
+		SetError(&ErrorResponse{}).
+		SetResult(&DataWrapper{&file}).
+		Post(url)
+
+	if err := checkError(resp, err); err != nil {
+		return nil, err
+	}
+
+	return &file, nil
+}
+
 // DepositDataset deposits a dataset in a specified project given the project ID and request details.
 // It creates the dataset, uploads files into a unique directory, and sets file selection for the dataset.
 func (c *Client) DepositDataset(projectID int, req DepositDatasetRequest) (*mcmodel.Dataset, error) {
