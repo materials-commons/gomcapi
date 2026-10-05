@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -609,6 +610,40 @@ func (c *Client) RenameDirectory(projectID int, directoryID int, newName string)
 	}
 
 	return &file, nil
+}
+
+// DeleteFile will delete a file within a project. If the file has objects
+// associated with it, such as samples, or processes, it will only be deleted
+// if the force parameter is set to true.
+func (c *Client) DeleteFile(projectID, fileID int, force bool) error {
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/files/%d", projectID, fileID)
+	req := c.r().SetError(&ErrorResponse{})
+
+	if force {
+		req = req.SetQueryParam("force", strconv.FormatBool(force))
+	}
+
+	resp, err := req.Delete(url)
+
+	if err := checkError(resp, err); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteDirectory will delete a directory (and all its contents) within a project.
+func (c *Client) DeleteDirectory(projectID, directoryID int) error {
+	url := c.BaseURL + fmt.Sprintf("/projects/%d/directories/%d", projectID, directoryID)
+	resp, err := c.r().
+		SetError(&ErrorResponse{}).
+		Delete(url)
+
+	if err := checkError(resp, err); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DepositDataset deposits a dataset in a specified project given the project ID and request details.
